@@ -2,37 +2,49 @@
 <html lang="bn">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Simple Calculator</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="calc">
-    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+    <div class="calc-header">
       <img src="./icon.svg" alt="Calculator Logo" width="28" height="28" />
       <strong>Simple Calculator</strong>
     </div>
+
     <input id="display" type="text" readonly placeholder="0" />
+
     <div class="grid">
-      <button class="clear" data-action="clear">C</button>
-      <button class="op" data-val="/">/</button>
-      <button class="op" data-val="*">*</button>
-      <button class="op" data-val="-">-</button>
+      <!-- Row 1 -->
+      <button type="button" class="clear" data-action="clear">AC</button>
+      <button type="button" class="clear" data-action="backspace">⌫</button>
+      <button type="button" class="op" data-action="percent" data-val="%">%</button>
+      <button type="button" class="op" data-val="/">÷</button>
 
-      <button data-val="7">7</button>
-      <button data-val="8">8</button>
-      <button data-val="9">9</button>
-      <button class="op" data-val="+">+</button>
+      <!-- Row 2 -->
+      <button type="button" data-val="7">7</button>
+      <button type="button" data-val="8">8</button>
+      <button type="button" data-val="9">9</button>
+      <button type="button" class="op" data-val="*">×</button>
 
-      <button data-val="4">4</button>
-      <button data-val="5">5</button>
-      <button data-val="6">6</button>
-      <button class="equal" data-action="equal">=</button>
+      <!-- Row 3 -->
+      <button type="button" data-val="4">4</button>
+      <button type="button" data-val="5">5</button>
+      <button type="button" data-val="6">6</button>
+      <button type="button" class="op" data-val="-">−</button>
 
-      <button data-val="1">1</button>
-      <button data-val="2">2</button>
-      <button data-val="3">3</button>
-      <button data-val="0">0</button>
+      <!-- Row 4 -->
+      <button type="button" data-val="1">1</button>
+      <button type="button" data-val="2">2</button>
+      <button type="button" data-val="3">3</button>
+      <button type="button" class="op" data-val="+">+</button>
+
+      <!-- Row 5 -->
+      <button type="button" data-val="00">00</button>
+      <button type="button" data-val="0">0</button>
+      <button type="button" data-action="dot" data-val=".">.</button>
+      <button type="button" class="equal" data-action="equal">=</button>
     </div>
   </div>
 
@@ -40,59 +52,190 @@
     import { calculate } from "./calc.js";
 
     const display = document.getElementById("display");
+    const grid = document.querySelector(".grid");
+
     let firstNum = "";
     let operator = "";
     let secondNum = "";
     let enteringSecond = false;
+    let justCalculated = false;
+
+    function formatOp(op) {
+      if (op === "/") return "÷";
+      if (op === "*") return "×";
+      if (op === "-") return "−";
+      return op;
+    }
 
     function updateDisplay(val) {
       display.value = val;
+      const len = String(val).length;
+      if (len > 12) {
+        display.style.fontSize = "28px";
+      } else if (len > 9) {
+        display.style.fontSize = "36px";
+      } else {
+        display.style.fontSize = "44px";
+      }
     }
 
-    document.querySelector(".grid").addEventListener("click", (e) => {
+    function resetAll() {
+      firstNum = "";
+      operator = "";
+      secondNum = "";
+      enteringSecond = false;
+      justCalculated = false;
+      updateDisplay("");
+    }
+
+    function runCalculation() {
+      if (firstNum !== "" && operator !== "" && secondNum !== "") {
+        const rawResult = calculate(Number(firstNum), operator, Number(secondNum));
+        const cleanResult =
+          typeof rawResult === "number" && isFinite(rawResult)
+            ? Math.round(rawResult * 1e8) / 1e8
+            : rawResult;
+
+        updateDisplay(String(cleanResult));
+        firstNum = isFinite(cleanResult) ? String(cleanResult) : "";
+        operator = "";
+        secondNum = "";
+        enteringSecond = false;
+        justCalculated = true;
+      }
+    }
+
+    grid.addEventListener("click", (e) => {
       const btn = e.target.closest("button");
       if (!btn) return;
 
       const action = btn.dataset.action;
       const val = btn.dataset.val;
 
+      // Clear all
       if (action === "clear") {
-        firstNum = "";
-        operator = "";
-        secondNum = "";
-        enteringSecond = false;
-        updateDisplay("");
+        resetAll();
         return;
       }
 
+      // Backspace / Delete single char
+      if (action === "backspace") {
+        if (justCalculated) {
+          resetAll();
+          return;
+        }
+        if (enteringSecond) {
+          if (secondNum.length > 0) {
+            secondNum = secondNum.slice(0, -1);
+            updateDisplay(
+              secondNum
+                ? `${firstNum} ${formatOp(operator)} ${secondNum}`
+                : `${firstNum} ${formatOp(operator)}`
+            );
+          } else {
+            operator = "";
+            enteringSecond = false;
+            updateDisplay(firstNum);
+          }
+        } else if (firstNum.length > 0) {
+          firstNum = firstNum.slice(0, -1);
+          updateDisplay(firstNum);
+        }
+        return;
+      }
+
+      // Equal
       if (action === "equal") {
-        if (firstNum !== "" && operator !== "" && secondNum !== "") {
-          const result = calculate(firstNum, operator, secondNum);
-          updateDisplay(result);
-          firstNum = String(result);
+        runCalculation();
+        return;
+      }
+
+      // Percent (%)
+      if (action === "percent") {
+        if (enteringSecond && secondNum !== "") {
+          const base = Number(firstNum) || 0;
+          secondNum = String((base * Number(secondNum)) / 100);
+          updateDisplay(`${firstNum} ${formatOp(operator)} ${secondNum}`);
+        } else if (!enteringSecond && firstNum !== "") {
+          firstNum = String(Number(firstNum) / 100);
+          updateDisplay(firstNum);
+        }
+        return;
+      }
+
+      // Decimal dot (.)
+      if (action === "dot") {
+        if (justCalculated) {
+          firstNum = "0.";
+          enteringSecond = false;
+          justCalculated = false;
+          updateDisplay(firstNum);
+          return;
+        }
+        if (!enteringSecond) {
+          if (!firstNum.includes(".")) {
+            firstNum = firstNum === "" ? "0." : firstNum + ".";
+            updateDisplay(firstNum);
+          }
+        } else {
+          if (!secondNum.includes(".")) {
+            secondNum = secondNum === "" ? "0." : secondNum + ".";
+            updateDisplay(`${firstNum} ${formatOp(operator)} ${secondNum}`);
+          }
+        }
+        return;
+      }
+
+      // Operator (+, -, *, /)
+      if (btn.classList.contains("op") && val) {
+        if (firstNum === "" && val === "-") {
+          firstNum = "-";
+          justCalculated = false;
+          updateDisplay(firstNum);
+          return;
+        }
+        if (firstNum !== "" && firstNum !== "-") {
+          if (enteringSecond && secondNum !== "") {
+            runCalculation();
+          }
+          operator = val;
+          enteringSecond = true;
+          justCalculated = false;
+          updateDisplay(`${firstNum} ${formatOp(operator)}`);
+        }
+        return;
+      }
+
+      // Numbers (0-9, 00)
+      if (val !== undefined) {
+        if (justCalculated) {
+          firstNum = val === "00" ? "0" : val;
           operator = "";
           secondNum = "";
           enteringSecond = false;
+          justCalculated = false;
+          updateDisplay(firstNum);
+          return;
         }
-        return;
-      }
 
-      if (btn.classList.contains("op")) {
-        if (firstNum !== "") {
-          operator = val;
-          enteringSecond = true;
-          updateDisplay(`${firstNum} ${operator}`);
-        }
-        return;
-      }
-
-      if (val !== undefined) {
         if (!enteringSecond) {
-          firstNum += val;
+          if (firstNum === "" && val === "00") {
+            firstNum = "0";
+          } else if (firstNum === "0" && val !== "00") {
+            firstNum = val;
+          } else if (!(firstNum === "0" && val === "00")) {
+            firstNum += val;
+          }
           updateDisplay(firstNum);
         } else {
-          secondNum += val;
-          updateDisplay(`${firstNum} ${operator} ${secondNum}`);
+          if (secondNum === "" && val === "00") {
+            secondNum = "0";
+          } else if (secondNum === "0" && val !== "00") {
+            secondNum = val;
+          } else if (!(secondNum === "0" && val === "00")) {
+            secondNum += val;
+          }
+          updateDisplay(`${firstNum} ${formatOp(operator)} ${secondNum}`);
         }
       }
     });
