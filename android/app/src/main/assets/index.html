@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simple Calculator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="calc">
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+      <img src="./icon.svg" alt="Calculator Logo" width="28" height="28" />
+      <strong>Simple Calculator</strong>
+    </div>
+    <input id="display" type="text" readonly placeholder="0" />
+    <div class="grid">
+      <button class="clear" data-action="clear">C</button>
+      <button class="op" data-val="/">/</button>
+      <button class="op" data-val="*">*</button>
+      <button class="op" data-val="-">-</button>
+
+      <button data-val="7">7</button>
+      <button data-val="8">8</button>
+      <button data-val="9">9</button>
+      <button class="op" data-val="+">+</button>
+
+      <button data-val="4">4</button>
+      <button data-val="5">5</button>
+      <button data-val="6">6</button>
+      <button class="equal" data-action="equal">=</button>
+
+      <button data-val="1">1</button>
+      <button data-val="2">2</button>
+      <button data-val="3">3</button>
+      <button data-val="0">0</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { calculate } from "./calc.js";
+
+    const display = document.getElementById("display");
+    let firstNum = "";
+    let operator = "";
+    let secondNum = "";
+    let enteringSecond = false;
+
+    function updateDisplay(val) {
+      display.value = val;
+    }
+
+    document.querySelector(".grid").addEventListener("click", (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+
+      const action = btn.dataset.action;
+      const val = btn.dataset.val;
+
+      if (action === "clear") {
+        firstNum = "";
+        operator = "";
+        secondNum = "";
+        enteringSecond = false;
+        updateDisplay("");
+        return;
+      }
+
+      if (action === "equal") {
+        if (firstNum !== "" && operator !== "" && secondNum !== "") {
+          const result = calculate(firstNum, operator, secondNum);
+          updateDisplay(result);
+          firstNum = String(result);
+          operator = "";
+          secondNum = "";
+          enteringSecond = false;
+        }
+        return;
+      }
+
+      if (btn.classList.contains("op")) {
+        if (firstNum !== "") {
+          operator = val;
+          enteringSecond = true;
+          updateDisplay(`${firstNum} ${operator}`);
+        }
+        return;
+      }
+
+      if (val !== undefined) {
+        if (!enteringSecond) {
+          firstNum += val;
+          updateDisplay(firstNum);
+        } else {
+          secondNum += val;
+          updateDisplay(`${firstNum} ${operator} ${secondNum}`);
+        }
+      }
+    });
+  </script>
+</body>
+</html>
