@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2f81f7" />
+      <stop offset="100%" stop-color="#154fb8" />
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded app icon background -->
+  <rect x="24" y="24" width="464" height="464" rx="112" ry="112" fill="url(#bgGrad)" />
+
+  <!-- Subtle inner border -->
+  <rect x="34" y="34" width="444" height="444" rx="102" ry="102" fill="none" stroke="#ffffff" stroke-opacity="0.18" stroke-width="4" />
+
+  <!-- Top display screen -->
+  <rect x="116" y="106" width="280" height="84" rx="22" ry="22" fill="#ffffff" fill-opacity="0.95" />
+  <rect x="256" y="138" width="112" height="20" rx="10" ry="10" fill="#1f6feb" />
+
+  <!-- Calculator keypad dots & equal sign -->
+  <circle cx="152" cy="256" r="24" fill="#ffffff" fill-opacity="0.92" />
+  <circle cx="256" cy="256" r="24" fill="#ffffff" fill-opacity="0.92" />
+  <circle cx="360" cy="256" r="24" fill="#dbeafe" />
+
+  <circle cx="152" cy="348" r="24" fill="#ffffff" fill-opacity="0.92" />
+  <circle cx="256" cy="348" r="24" fill="#ffffff" fill-opacity="0.92" />
+
+  <!-- Highlighted '=' key on bottom right -->
+  <rect x="320" y="314" width="80" height="86" rx="24" ry="24" fill="#ffffff" />
+  <line x1="340" y1="344" x2="380" y2="344" stroke="#154fb8" stroke-width="10" stroke-linecap="round" />
+  <line x1="340" y1="370" x2="380" y2="370" stroke="#154fb8" stroke-width="10" stroke-linecap="round" />
+</svg>
