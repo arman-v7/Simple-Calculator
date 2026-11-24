@@ -50,8 +50,8 @@ jobs:
           if [ ! -x "$SDKMANAGER" ]; then
             SDKMANAGER=$(find "$SDK_ROOT/cmdline-tools" -name sdkmanager -type f 2>/dev/null | head -n 1)
           fi
-          yes | "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses >/dev/null || true
-          "$SDKMANAGER" --sdk_root="$SDK_ROOT" "platform-tools" "build-tools;34.0.0" "platforms;android-34" "extras;android;m2repository" "extras;google;m2repository"
+          yes | "$SDKMANAGER" --sdk_root="$SDKROOT" --licenses >/dev/null || true
+          "$SDKMANAGER" --sdk_root="$SDKROOT" "platform-tools" "build-tools;34.0.0" "platforms;android-34" "extras;android;m2repository" "extras;google;m2repository"
 
       - name: Set up Gradle automatically
         uses: gradle/actions/setup-gradle@v4
@@ -61,9 +61,12 @@ jobs:
       - name: Build Debug APK
         run: |
           cd android
+          touch gradle.properties
+          grep -q "^android.useAndroidX=" gradle.properties || echo "android.useAndroidX=true" >> gradle.properties
+          grep -q "^android.enableJetifier=" gradle.properties || echo "android.enableJetifier=true" >> gradle.properties
           gradle wrapper --gradle-version 8.7 --distribution-type bin
           chmod +x gradlew
-          ./gradlew assembleDebug --refresh-dependencies --no-daemon --stacktrace
+          ./gradlew assembleDebug --no-daemon
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
